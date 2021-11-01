@@ -142,12 +142,21 @@ async def request(socket, sid, method='get', url='', body=None, headers=None, te
         process_time = end_time - start_time
         result['processTime'] = int(process_time.total_seconds() * 1000)
     if url.startswith('https://wq.jd.com/deal/confirmorder/main'):
-        deal_data = re.findall('window.dealData = (.*?)// traceid', text, re.DOTALL)
-        if not deal_data:
-            result['data'] = {}
-        else:
-            deal_data = re.sub('\s', '', deal_data[0])
-            result['data'] = eval(deal_data)
+        traceId = re.findall('"traceId":"(.*?)"', text)
+        traceId = traceId[0] if traceId else ''
+        errId = re.findall('"errId":"(.*?)"', text)
+        errId = errId[0] if errId else ''
+        usedJdBean = re.findall('"usedJdBean":"(.*?)"', text)
+        usedJdBean = usedJdBean[0] if usedJdBean else ''
+        errMsg = re.findall('"errMsg":"(.*?)"', text)
+        errMsg = errMsg[0] if errMsg else ''
+        result['data'] = {'traceId': traceId, 'errId': errId, 'usedJdBean': usedJdBean, 'errMsg': errMsg}
+        # deal_data = re.findall('window.dealData = (.*?)// traceid', text, re.DOTALL)
+        # if not deal_data:
+        #     result['data'] = {}
+        # else:
+        #     deal_data = re.sub('\s', '', deal_data[0])
+        #     result['data'] = eval(deal_data)
     # print(result['data'])
     event = uuid or 'orderPublic'
     # print(f'send to {event} ==> ', str(result)[:100])
